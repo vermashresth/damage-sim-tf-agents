@@ -131,11 +131,19 @@ def ant():
   """Configuration for MuJoCo's ant task."""
   locals().update(default())
   # Environment
-  env = 'Ant-v2'
+  env = 'Ant-v1'
+  max_length = 1000
+  steps = 3e7  # 20M
+  return locals()
+
+def myant():
+  """Configuration for MuJoCo's ant task."""
+  locals().update(default())
+  # Environment
+  env = 'MyAnt-v1'
   max_length = 1000
   steps = 2e7  # 20M
   return locals()
-
 
 def humanoid():
   """Configuration for MuJoCo's humanoid task."""

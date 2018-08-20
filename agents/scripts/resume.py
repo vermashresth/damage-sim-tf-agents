@@ -32,8 +32,7 @@ import tensorflow as tf
 from agents import tools
 from agents.scripts import configs
 from agents.scripts import utility
-import random
-
+import numpy as np
 def _create_environment(config):
   """Constructor for an instance of the environment.
 
@@ -46,16 +45,10 @@ def _create_environment(config):
   Returns:
     Wrapped OpenAI Gym environment.
   """
-  #print("hi")
-  p = 0.6
-  #np.random.seed()
-  q =random.uniform(0,1)
-  print(q)
-  if q < p:
-        
-	  env = gym.make("MyAnt-v1")
+  if isinstance(config.env, str):
+    env = gym.make(config.env)
   else:
-          env = gym.make("MyAntdam-v1")
+    env = config.env()
   if config.max_length:
     env = tools.wrappers.LimitDuration(env, config.max_length)
   if isinstance(env.action_space, gym.spaces.Box):
@@ -123,7 +116,6 @@ def train(config, env_processes):
     batch_env = utility.define_batch_env(
         lambda: _create_environment(config),
         config.num_agents, env_processes)
-    
     graph = utility.define_simulation_graph(
         batch_env, config.algorithm, config)
     loop = _define_loop(
@@ -139,7 +131,8 @@ def train(config, env_processes):
   sess_config = tf.ConfigProto(allow_soft_placement=True)
   sess_config.gpu_options.allow_growth = True
   with tf.Session(config=sess_config) as sess:
-    utility.initialize_variables(sess, saver, config.logdir)
+    print(config.logdir)
+    utility.initialize_variables(sess, saver, FLAGS.logdir, FLAGS.ckpt, resume=True)
     for score in loop.run(sess, saver, total_steps):
       yield score
   batch_env.close()
@@ -166,6 +159,9 @@ if __name__ == '__main__':
   tf.app.flags.DEFINE_string(
       'logdir', None,
       'Base directory to store logs.')
+  tf.app.flags.DEFINE_string(
+      'ckpt', None,
+      'File to load ckpt from.')
   tf.app.flags.DEFINE_string(
       'timestamp', datetime.datetime.now().strftime('%Y%m%dT%H%M%S'),
       'Sub directory to store logs.')

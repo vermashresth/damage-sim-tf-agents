@@ -133,7 +133,7 @@ class FrameHistory(object):
     if self._flatten:
       low = np.reshape(low, (-1,) + low.shape[2:])
       high = np.reshape(high, (-1,) + high.shape[2:])
-    return gym.spaces.Box(low, high, dtype=np.float32)
+    return gym.spaces.Box(low, high)
 
   def step(self, action):
     observ, reward, done, info = self._env.step(action)
@@ -172,7 +172,7 @@ class FrameDelta(object):
     low = self._env.observation_space.low
     high = self._env.observation_space.high
     low, high = low - high, high - low
-    return gym.spaces.Box(low, high, dtype=np.float32)
+    return gym.spaces.Box(low, high)
 
   def step(self, action):
     observ, reward, done, info = self._env.step(action)
@@ -213,7 +213,7 @@ class RangeNormalize(object):
     if not self._should_normalize_observ:
       return space
     low, high = -np.ones(space.shape), np.ones(space.shape)
-    return gym.spaces.Box(low, high, dtype=np.float32)
+    return gym.spaces.Box(low, high)
 
   @property
   def action_space(self):
@@ -221,7 +221,7 @@ class RangeNormalize(object):
     if not self._should_normalize_action:
       return space
     low, high = -np.ones(space.shape), np.ones(space.shape)
-    return gym.spaces.Box(low, high, dtype=np.float32)
+    return gym.spaces.Box(low, high)
 
   def step(self, action):
     if self._should_normalize_action:
@@ -266,7 +266,7 @@ class ClipAction(object):
   def action_space(self):
     shape = self._env.action_space.shape
     low, high = -np.inf * np.ones(shape), np.inf * np.ones(shape)
-    return gym.spaces.Box(low, high, dtype=np.float32)
+    return gym.spaces.Box(low, high)
 
   def step(self, action):
     action_space = self._env.action_space

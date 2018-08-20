@@ -32,8 +32,8 @@ import tensorflow as tf
 from agents import tools
 from agents.scripts import configs
 from agents.scripts import utility
+import numpy as np
 import random
-
 def _create_environment(config):
   """Constructor for an instance of the environment.
 
@@ -46,8 +46,7 @@ def _create_environment(config):
   Returns:
     Wrapped OpenAI Gym environment.
   """
-  #print("hi")
-  p = 0.6
+  p = 0
   #np.random.seed()
   q =random.uniform(0,1)
   print(q)
@@ -56,6 +55,7 @@ def _create_environment(config):
 	  env = gym.make("MyAnt-v1")
   else:
           env = gym.make("MyAntdam-v1")
+
   if config.max_length:
     env = tools.wrappers.LimitDuration(env, config.max_length)
   if isinstance(env.action_space, gym.spaces.Box):
@@ -89,12 +89,6 @@ def _define_loop(graph, logdir, train_steps, eval_steps):
       logdir, graph.step, graph.should_log, graph.do_report,
       graph.force_reset)
   loop.add_phase(
-      'train', graph.done, graph.score, graph.summary, train_steps,
-      report_every=train_steps,
-      log_every=train_steps // 2,
-      checkpoint_every=None,
-      feed={graph.is_training: True})
-  loop.add_phase(
       'eval', graph.done, graph.score, graph.summary, eval_steps,
       report_every=eval_steps,
       log_every=eval_steps // 2,
@@ -123,7 +117,6 @@ def train(config, env_processes):
     batch_env = utility.define_batch_env(
         lambda: _create_environment(config),
         config.num_agents, env_processes)
-    
     graph = utility.define_simulation_graph(
         batch_env, config.algorithm, config)
     loop = _define_loop(
@@ -139,7 +132,8 @@ def train(config, env_processes):
   sess_config = tf.ConfigProto(allow_soft_placement=True)
   sess_config.gpu_options.allow_growth = True
   with tf.Session(config=sess_config) as sess:
-    utility.initialize_variables(sess, saver, config.logdir)
+    print(config.logdir)
+    utility.initialize_variables(sess, saver, FLAGS.logdir, FLAGS.ckpt, resume=True)
     for score in loop.run(sess, saver, total_steps):
       yield score
   batch_env.close()
@@ -166,6 +160,9 @@ if __name__ == '__main__':
   tf.app.flags.DEFINE_string(
       'logdir', None,
       'Base directory to store logs.')
+  tf.app.flags.DEFINE_string(
+      'ckpt', None,
+      'File to load ckpt from.')
   tf.app.flags.DEFINE_string(
       'timestamp', datetime.datetime.now().strftime('%Y%m%dT%H%M%S'),
       'Sub directory to store logs.')

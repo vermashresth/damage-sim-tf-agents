@@ -74,6 +74,7 @@ def define_batch_env(constructor, num_agents, env_processes):
       envs = [constructor() for _ in range(num_agents)]
     batch_env = tools.BatchEnv(envs, blocking=not env_processes)
     batch_env = tools.InGraphBatchEnv(batch_env)
+
   return batch_env
 
 
@@ -117,16 +118,22 @@ def initialize_variables(sess, saver, logdir, checkpoint=None, resume=None):
   if resume and not (logdir or checkpoint):
     raise ValueError('Need to specify logdir to resume a checkpoint.')
   if logdir:
+    print(0)
     state = tf.train.get_checkpoint_state(logdir)
     if checkpoint:
+      print(1)
       checkpoint = os.path.join(logdir, checkpoint)
     if not checkpoint and state and state.model_checkpoint_path:
+      print(2)
       checkpoint = state.model_checkpoint_path
     if checkpoint and resume is False:
+      print(3)
       message = 'Found unexpected checkpoint when starting a new run.'
       raise RuntimeError(message)
     if checkpoint:
+      print(4)
       saver.restore(sess, checkpoint)
+      print ("hi")
 
 
 def save_config(config, logdir=None):
